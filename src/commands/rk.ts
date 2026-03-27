@@ -188,6 +188,13 @@ async function ensureRk({
         }
     }
 
+    if (typeof toolEntry !== "string") {
+        logger.error(
+            `tool "${tool}" is not a string in ${tomlPath}. please check your rokit.toml configuration.`,
+        );
+        process.exit(1);
+    }
+
     // `toolEntry` format is usually "owner/repo@version"
     // We need to parse it to get owner, repo, and version.
     const match = toolEntry.match(/^([^/]+)\/([^@]+)@(.+)$/);
