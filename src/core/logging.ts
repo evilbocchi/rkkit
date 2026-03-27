@@ -1,9 +1,18 @@
-import { DefaultMethods, Signale, SignaleOptions } from "signale";
+import pkg from "signale";
+import type {
+    DefaultMethods,
+    SignaleOptions,
+    Signale as SignaleType,
+} from "signale";
+
+const { Signale } = pkg;
+
+type SignaleConstructor = new (options?: SignaleOptions) => SignaleType;
 
 /**
  * Custom Logger class extending Signale to provide log level management.
  */
-class Logger extends Signale {
+class Logger extends (Signale as unknown as SignaleConstructor) {
     constructor(options: SignaleOptions = {}) {
         super(options);
     }
@@ -26,7 +35,7 @@ class Logger extends Signale {
      * @param level The log level to set (e.g., 'debug', 'info', 'warn', 'error').
      */
     setLogLevel(level: DefaultMethods) {
-        const privateThis = this as Signale & {
+        const privateThis = this as unknown as SignaleType & {
             _generalLogLevel: string;
             _validateLogLevel: (level: string) => string;
         };
