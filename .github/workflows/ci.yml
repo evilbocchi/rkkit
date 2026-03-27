@@ -32,7 +32,7 @@ jobs:
         run: npx prettier --check .
 
       - name: Run linter
-        run: npm run lint
+        run: npx eslint .
 
       - name: Build project
         run: npm run build
