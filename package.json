@@ -16,11 +16,11 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "bin": {
-        "lune": "./dist/clis/lune.js",
-        "rk": "./dist/clis/rk.js",
-        "rkkit": "./dist/clis/rk.js",
-        "rojo": "./dist/clis/rojo.js",
-        "rokit": "./dist/clis/rokit.js"
+        "lune": "dist/clis/lune.js",
+        "rk": "dist/clis/rk.js",
+        "rkkit": "dist/clis/rk.js",
+        "rojo": "dist/clis/rojo.js",
+        "rokit": "dist/clis/rokit.js"
     },
     "files": [
         "dist"
