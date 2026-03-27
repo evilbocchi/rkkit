@@ -30,8 +30,7 @@
         "prepare": "lefthook install",
         "prepublishOnly": "npm run build",
         "format": "prettier --write .",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
+        "lint": "eslint . --fix",
         "test": "vitest run"
     },
     "devDependencies": {
