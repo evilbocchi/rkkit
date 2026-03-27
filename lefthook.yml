@@ -1,0 +1,12 @@
+# Lefthook configuration
+# Refer to: https://github.com/evilmartians/lefthook/blob/master/docs/configuration.md
+
+pre-commit:
+  parallel: true
+  commands:
+    check-format:
+      glob: "*.{js,ts,json,md}"
+      run: npx prettier --check {staged_files}
+    lint:
+      glob: "*.{js,ts}"
+      run: npx eslint {staged_files}

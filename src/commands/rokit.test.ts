@@ -44,14 +44,14 @@ describe("rokit command", () => {
         vi.resetModules();
         vi.clearAllMocks();
         vi.mocked(os.homedir).mockReturnValue(mockHomedir);
-        vi.mocked(os.platform).mockReturnValue("linux" as any);
+        vi.mocked(os.platform).mockReturnValue("linux" as NodeJS.Platform);
         vi.mocked(os.arch).mockReturnValue("x64");
         vi.mocked(fs.existsSync).mockReturnValue(false);
-        vi.mocked(fs.mkdirSync).mockReturnValue(undefined as any);
+        vi.mocked(fs.mkdirSync).mockReturnValue("");
         vi.mocked(fs.readdirSync).mockReturnValue([]);
         vi.mocked(fs.statSync).mockReturnValue({
             isDirectory: () => true,
-        } as any);
+        } as fs.Stats);
 
         rokitModule = await import("./rokit");
     });
@@ -100,20 +100,20 @@ describe("rokit command", () => {
         };
 
         const setupFetchMocks = () => {
-            vi.mocked(fetch).mockImplementation(async (url: any) => {
+            vi.mocked(fetch).mockImplementation(async (url) => {
                 if (url.toString().includes("api.github.com")) {
                     return {
                         ok: true,
                         json: async () => mockReleaseData,
-                    } as any;
+                    } as Response;
                 }
                 if (url.toString().includes("example.com")) {
                     return {
                         ok: true,
                         arrayBuffer: async () => new ArrayBuffer(8),
-                    } as any;
+                    } as Response;
                 }
-                return { ok: false } as any;
+                return { ok: false } as Response;
             });
         };
 
@@ -167,7 +167,7 @@ describe("rokit command", () => {
             vi.mocked(fetch).mockResolvedValue({
                 ok: false,
                 statusText: "Not Found",
-            } as any);
+            } as Response);
 
             vi.mocked(fs.existsSync).mockImplementation((p) => {
                 if (typeof p !== "string") return false;
@@ -180,7 +180,7 @@ describe("rokit command", () => {
             ] as any);
             vi.mocked(fs.statSync).mockReturnValue({
                 isDirectory: () => true,
-            } as any);
+            } as fs.Stats);
 
             const binPath = path.join(mockRokitDir, "1.0.0", "rokit");
             vi.mocked(fs.existsSync).mockImplementation((p) => {
@@ -209,7 +209,7 @@ describe("rokit command", () => {
             vi.mocked(fetch).mockResolvedValue({
                 ok: false,
                 statusText: "Not Found",
-            } as any);
+            } as Response);
 
             vi.mocked(fs.existsSync).mockReturnValue(false);
             vi.mocked(fs.readdirSync).mockReturnValue([]);
@@ -316,7 +316,7 @@ describe("rokit command", () => {
 
         it("should fallback to gh auth token if GITHUB_TOKEN is not set", async () => {
             delete process.env.GITHUB_TOKEN;
-            vi.mocked(execSync).mockReturnValue("gh-token\n" as any);
+            vi.mocked(execSync).mockReturnValue("gh-token\n");
             setupFetchMocks();
 
             await rokitModule.rokitCommandHandler({
@@ -339,7 +339,9 @@ describe("rokit command", () => {
         });
 
         it("should throw error for unsupported platform", async () => {
-            vi.mocked(os.platform).mockReturnValue("freebsd" as any);
+            vi.mocked(os.platform).mockReturnValue(
+                "freebsd" as NodeJS.Platform,
+            );
             setupFetchMocks();
 
             await expect(
@@ -351,17 +353,17 @@ describe("rokit command", () => {
         });
 
         it("should handle download failures", async () => {
-            vi.mocked(fetch).mockImplementation(async (url: any) => {
+            vi.mocked(fetch).mockImplementation(async (url) => {
                 if (url.toString().includes("api.github.com")) {
                     return {
                         ok: true,
                         json: async () => mockReleaseData,
-                    } as any;
+                    } as Response;
                 }
                 return {
                     ok: false,
                     statusText: "Forbidden",
-                } as any;
+                } as Response;
             });
 
             await rokitModule.rokitCommandHandler({

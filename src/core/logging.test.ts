@@ -7,7 +7,9 @@ describe("logging", () => {
     });
 
     it("should have correct log levels order", () => {
-        const logLevels = (logger as any)._logLevels;
+        const logLevels = (
+            logger as unknown as { _logLevels: Record<string, number> }
+        )._logLevels;
         expect(logLevels.debug).toBe(0);
         expect(logLevels.timer).toBe(1);
         expect(logLevels.info).toBe(2);
@@ -20,11 +22,17 @@ describe("logging", () => {
 
         logger.setLogLevel("debug");
         expect(setLogLevelSpy).toHaveBeenCalledWith("debug");
-        expect((logger as any)._generalLogLevel).toBe("debug");
+        expect(
+            (logger as unknown as { _generalLogLevel: string })
+                ._generalLogLevel,
+        ).toBe("debug");
 
         logger.setLogLevel("warn");
         expect(setLogLevelSpy).toHaveBeenCalledWith("warn");
-        expect((logger as any)._generalLogLevel).toBe("warn");
+        expect(
+            (logger as unknown as { _generalLogLevel: string })
+                ._generalLogLevel,
+        ).toBe("warn");
     });
 
     it("should configure logger based on verbosity", () => {

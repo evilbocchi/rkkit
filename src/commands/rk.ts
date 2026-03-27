@@ -12,7 +12,7 @@ import * as semver from "semver";
 import { logger } from "../core/logging.js";
 import { rokitCommandHandler } from "./rokit.js";
 
-type RkCommandOptions = {
+export type RkCommandOptions = {
     /**
      * The version of Rokit to use for this command. If not specified, the local Rokit installation will be used. If no local installation is found, the latest version of Rokit will be used.
      */
@@ -120,16 +120,18 @@ async function ensureRk({
 
     // 2. Read and parse rokit.toml.
     let tomlContent = await readFile(tomlPath, "utf-8");
-    let tomlData: any;
+    let tomlData: { tools?: Record<string, unknown> };
     try {
-        tomlData = parseToml(tomlContent);
+        tomlData = parseToml(tomlContent) as {
+            tools?: Record<string, unknown>;
+        };
     } catch (err) {
         logger.error(`failed to parse ${tomlPath}: ${err}`);
         process.exit(1);
     }
 
     let tools = tomlData.tools || {};
-    const getToolEntry = (t: any, name: string) => {
+    const getToolEntry = (t: Record<string, unknown>, name: string) => {
         if (t[name]) return t[name];
         const parts = name.split("@")[0].split("/");
         if (parts.length > 1) {

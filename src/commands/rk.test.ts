@@ -32,7 +32,9 @@ vi.mock("../core/logging", () => ({
 }));
 
 if (fs.constants === undefined) {
-    (fs as any).constants = { X_OK: 1 };
+    (fs as unknown as { constants: { X_OK: number } }).constants = {
+        X_OK: 1,
+    };
 }
 
 const mockRokitCommandHandler = vi.fn();
@@ -51,7 +53,7 @@ describe("rk command", () => {
         vi.resetModules();
         vi.clearAllMocks();
         vi.mocked(os.homedir).mockReturnValue(mockHomedir);
-        vi.mocked(os.platform).mockReturnValue("linux" as any);
+        vi.mocked(os.platform).mockReturnValue("linux" as NodeJS.Platform);
         vi.spyOn(process, "cwd").mockReturnValue(mockCwd);
         vi.spyOn(process, "exit").mockImplementation((code) => {
             throw new Error(`process.exit(${code})`);
@@ -61,7 +63,7 @@ describe("rk command", () => {
         vi.mocked(fs.readdirSync).mockReturnValue([]);
         vi.mocked(fs.statSync).mockReturnValue({
             isDirectory: () => true,
-        } as any);
+        } as fs.Stats);
         vi.mocked(readFile).mockResolvedValue("");
         vi.mocked(parseToml).mockReturnValue({});
         vi.mocked(semver.satisfies).mockReturnValue(true);
@@ -102,7 +104,7 @@ describe("rk command", () => {
             vi.mocked(fs.readdirSync).mockReturnValue(["0.0.0"] as any);
             vi.mocked(fs.statSync).mockReturnValue({
                 isDirectory: () => true,
-            } as any);
+            } as fs.Stats);
             vi.mocked(fs.accessSync).mockReturnValue(undefined);
 
             await rkModule.rkCommandHandler({ tool: "lune", autoInit: true });
@@ -131,7 +133,7 @@ describe("rk command", () => {
             vi.mocked(fs.readdirSync).mockReturnValue(["0.21.0"] as any);
             vi.mocked(fs.statSync).mockReturnValue({
                 isDirectory: () => true,
-            } as any);
+            } as fs.Stats);
             vi.mocked(fs.accessSync).mockReturnValue(undefined);
 
             await rkModule.rkCommandHandler({
@@ -253,12 +255,16 @@ describe("rk command", () => {
                 "0.20.0",
             ] as any);
             vi.mocked(semver.satisfies).mockImplementation(
-                (v: string | semver.SemVer, _range: string | semver.Range) =>
-                    String(v) === "0.21.1",
+                (
+                    v: string | typeof semver.SemVer,
+                    _range: string | typeof semver.Range,
+                ) => String(v) === "0.21.1",
             );
             vi.mocked(semver.rcompare).mockImplementation(
-                (a: string | semver.SemVer, _b: string | semver.SemVer) =>
-                    String(a) === "0.21.1" ? -1 : 1,
+                (
+                    a: string | typeof semver.SemVer,
+                    _b: string | typeof semver.SemVer,
+                ) => (String(a) === "0.21.1" ? -1 : 1),
             );
             await rkModule.rkCommandHandler({ tool: "lune" });
             expect(spawn).toHaveBeenCalledWith(
@@ -332,8 +338,8 @@ describe("rk command", () => {
             });
             vi.mocked(fs.readdirSync).mockImplementation((p) => {
                 const pathStr = p.toString();
-                if (pathStr.includes("0.21.0")) return ["random-exe"] as any;
-                if (pathStr.includes("rojo-rbx")) return ["0.21.0"] as any;
+                if (pathStr.includes("0.21.0")) return ["random-exe"];
+                if (pathStr.includes("rojo-rbx")) return ["0.21.0"];
                 return ["0.21.0"] as any;
             });
             vi.mocked(fs.statSync).mockImplementation((p) => {
@@ -342,9 +348,9 @@ describe("rk command", () => {
                     pathStr.includes("0.21.0") &&
                     pathStr.endsWith("random-exe")
                 ) {
-                    return { isDirectory: () => false } as any;
+                    return { isDirectory: () => false } as fs.Stats;
                 }
-                return { isDirectory: () => true } as any;
+                return { isDirectory: () => true } as fs.Stats;
             });
             vi.mocked(fs.accessSync).mockReturnValue(undefined);
             mockRokitCommandHandler.mockResolvedValue({ status: 0 });
@@ -369,8 +375,8 @@ describe("rk command", () => {
             });
             vi.mocked(fs.readdirSync).mockImplementation((p) => {
                 const pathStr = p.toString();
-                if (pathStr.includes("0.21.0")) return ["not-an-exe"] as any;
-                if (pathStr.includes("rojo-rbx")) return ["0.21.0"] as any;
+                if (pathStr.includes("0.21.0")) return ["not-an-exe"];
+                if (pathStr.includes("rojo-rbx")) return ["0.21.0"];
                 return ["0.21.0"] as any;
             });
             vi.mocked(fs.statSync).mockImplementation((p) => {
@@ -379,9 +385,9 @@ describe("rk command", () => {
                     pathStr.includes("0.21.0") &&
                     pathStr.endsWith("not-an-exe")
                 ) {
-                    return { isDirectory: () => false } as any;
+                    return { isDirectory: () => false } as fs.Stats;
                 }
-                return { isDirectory: () => true } as any;
+                return { isDirectory: () => true } as fs.Stats;
             });
             vi.mocked(fs.accessSync).mockImplementation(() => {
                 throw new Error("not executable");
