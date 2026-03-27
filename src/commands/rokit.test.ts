@@ -30,11 +30,8 @@ vi.mock("../core/logging", () => ({
     },
 }));
 
-// Mock global fetch and Bun
+// Mock global fetch
 vi.stubGlobal("fetch", vi.fn());
-vi.stubGlobal("Bun", {
-    write: vi.fn(),
-});
 
 describe("rokit command", () => {
     const mockHomedir = "/home/user";
@@ -52,7 +49,9 @@ describe("rokit command", () => {
         vi.mocked(fs.existsSync).mockReturnValue(false);
         vi.mocked(fs.mkdirSync).mockReturnValue(undefined as any);
         vi.mocked(fs.readdirSync).mockReturnValue([]);
-        vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as any);
+        vi.mocked(fs.statSync).mockReturnValue({
+            isDirectory: () => true,
+        } as any);
 
         rokitModule = await import("./rokit");
     });
@@ -61,7 +60,9 @@ describe("rokit command", () => {
         it("should create the cache folder if it does not exist", () => {
             vi.mocked(fs.existsSync).mockReturnValue(false);
             const dir = rokitModule.ensureCacheFolder();
-            expect(fs.mkdirSync).toHaveBeenCalledWith(mockCacheDir, { recursive: true });
+            expect(fs.mkdirSync).toHaveBeenCalledWith(mockCacheDir, {
+                recursive: true,
+            });
             expect(dir).toBe(mockCacheDir);
         });
 
@@ -83,7 +84,8 @@ describe("rokit command", () => {
                 },
                 {
                     name: "rokit-windows-x86_64.zip",
-                    browser_download_url: "https://example.com/rokit-windows.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-windows.zip",
                 },
                 {
                     name: "rokit-macos-x86_64.zip",
@@ -91,7 +93,8 @@ describe("rokit command", () => {
                 },
                 {
                     name: "rokit-macos-aarch64.zip",
-                    browser_download_url: "https://example.com/rokit-macos-arm64.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-macos-arm64.zip",
                 },
             ],
         };
@@ -107,6 +110,7 @@ describe("rokit command", () => {
                 if (url.toString().includes("example.com")) {
                     return {
                         ok: true,
+                        arrayBuffer: async () => new ArrayBuffer(8),
                     } as any;
                 }
                 return { ok: false } as any;
@@ -116,13 +120,16 @@ describe("rokit command", () => {
         it("should download the latest version when not cached", async () => {
             setupFetchMocks();
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: ["install"] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: ["install"],
+            });
 
             expect(fetch).toHaveBeenCalledWith(
                 "https://api.github.com/repos/rojo-rbx/rokit/releases/latest",
                 expect.any(Object),
             );
-            expect(Bun.write).toHaveBeenCalled();
+            expect(fs.writeFileSync).toHaveBeenCalled();
             expect(AdmZip).toHaveBeenCalled();
             expect(spawnSync).toHaveBeenCalledWith(
                 path.join(mockRokitDir, "1.0.0", "rokit"),
@@ -143,10 +150,17 @@ describe("rokit command", () => {
                 return false;
             });
 
-            await rokitModule.rokitCommandHandler({ version: "1.0.0", args: ["list"] });
+            await rokitModule.rokitCommandHandler({
+                version: "1.0.0",
+                args: ["list"],
+            });
 
             expect(fetch).not.toHaveBeenCalled();
-            expect(spawnSync).toHaveBeenCalledWith(binPath, ["list"], expect.any(Object));
+            expect(spawnSync).toHaveBeenCalledWith(
+                binPath,
+                ["list"],
+                expect.any(Object),
+            );
         });
 
         it("should use local latest version when remote fetch fails", async () => {
@@ -160,8 +174,13 @@ describe("rokit command", () => {
                 if (p === mockRokitDir) return true;
                 return false;
             });
-            vi.mocked(fs.readdirSync).mockReturnValue(["0.9.0", "1.0.0"] as any);
-            vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as any);
+            vi.mocked(fs.readdirSync).mockReturnValue([
+                "0.9.0",
+                "1.0.0",
+            ] as any);
+            vi.mocked(fs.statSync).mockReturnValue({
+                isDirectory: () => true,
+            } as any);
 
             const binPath = path.join(mockRokitDir, "1.0.0", "rokit");
             vi.mocked(fs.existsSync).mockImplementation((p) => {
@@ -171,10 +190,19 @@ describe("rokit command", () => {
                 return false;
             });
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: ["run"] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: ["run"],
+            });
 
-            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining("using local latest: 1.0.0"));
-            expect(spawnSync).toHaveBeenCalledWith(binPath, ["run"], expect.any(Object));
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.stringContaining("using local latest: 1.0.0"),
+            );
+            expect(spawnSync).toHaveBeenCalledWith(
+                binPath,
+                ["run"],
+                expect.any(Object),
+            );
         });
 
         it("should log error when both remote fetch and local versions are missing", async () => {
@@ -186,9 +214,14 @@ describe("rokit command", () => {
             vi.mocked(fs.existsSync).mockReturnValue(false);
             vi.mocked(fs.readdirSync).mockReturnValue([]);
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
-            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("no local versions found either"));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.stringContaining("no local versions found either"),
+            );
             expect(spawnSync).not.toHaveBeenCalled();
         });
 
@@ -206,7 +239,11 @@ describe("rokit command", () => {
         });
 
         it("should use the highest local version if version is not provided", async () => {
-            vi.mocked(fs.readdirSync).mockReturnValue(["0.9.0", "1.1.0", "1.0.0"] as any);
+            vi.mocked(fs.readdirSync).mockReturnValue([
+                "0.9.0",
+                "1.1.0",
+                "1.0.0",
+            ] as any);
             const binPath = path.join(mockRokitDir, "1.1.0", "rokit");
             vi.mocked(fs.existsSync).mockImplementation((p) => {
                 if (typeof p !== "string") return false;
@@ -217,7 +254,11 @@ describe("rokit command", () => {
 
             await rokitModule.rokitCommandHandler({ args: ["list"] });
 
-            expect(spawnSync).toHaveBeenCalledWith(binPath, ["list"], expect.any(Object));
+            expect(spawnSync).toHaveBeenCalledWith(
+                binPath,
+                ["list"],
+                expect.any(Object),
+            );
         });
 
         it("should handle Windows platform correctly", async () => {
@@ -225,10 +266,17 @@ describe("rokit command", () => {
             vi.mocked(os.arch).mockReturnValue("x64");
             setupFetchMocks();
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
             const binPath = path.join(mockRokitDir, "1.0.0", "rokit.exe");
-            expect(spawnSync).toHaveBeenCalledWith(binPath, [], expect.any(Object));
+            expect(spawnSync).toHaveBeenCalledWith(
+                binPath,
+                [],
+                expect.any(Object),
+            );
         });
 
         it("should handle macOS ARM64 correctly", async () => {
@@ -236,16 +284,24 @@ describe("rokit command", () => {
             vi.mocked(os.arch).mockReturnValue("arm64");
             setupFetchMocks();
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
-            expect(fetch).toHaveBeenCalledWith("https://example.com/rokit-macos-arm64.zip");
+            expect(fetch).toHaveBeenCalledWith(
+                "https://example.com/rokit-macos-arm64.zip",
+            );
         });
 
         it("should use GITHUB_TOKEN if available", async () => {
             process.env.GITHUB_TOKEN = "mock-token";
             setupFetchMocks();
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
             expect(fetch).toHaveBeenCalledWith(
                 expect.any(String),
@@ -263,9 +319,15 @@ describe("rokit command", () => {
             vi.mocked(execSync).mockReturnValue("gh-token\n" as any);
             setupFetchMocks();
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
-            expect(execSync).toHaveBeenCalledWith("gh auth token", expect.any(Object));
+            expect(execSync).toHaveBeenCalledWith(
+                "gh auth token",
+                expect.any(Object),
+            );
             expect(fetch).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.objectContaining({
@@ -280,9 +342,12 @@ describe("rokit command", () => {
             vi.mocked(os.platform).mockReturnValue("freebsd" as any);
             setupFetchMocks();
 
-            await expect(rokitModule.rokitCommandHandler({ version: "latest", args: [] })).rejects.toThrow(
-                "Unsupported platform: freebsd",
-            );
+            await expect(
+                rokitModule.rokitCommandHandler({
+                    version: "latest",
+                    args: [],
+                }),
+            ).rejects.toThrow("Unsupported platform: freebsd");
         });
 
         it("should handle download failures", async () => {
@@ -299,10 +364,15 @@ describe("rokit command", () => {
                 } as any;
             });
 
-            await rokitModule.rokitCommandHandler({ version: "latest", args: [] });
+            await rokitModule.rokitCommandHandler({
+                version: "latest",
+                args: [],
+            });
 
             expect(logger.error).toHaveBeenCalledWith(
-                expect.stringContaining("failed to download rokit from https://example.com/rokit-linux.zip: Forbidden"),
+                expect.stringContaining(
+                    "failed to download rokit from https://example.com/rokit-linux.zip: Forbidden",
+                ),
             );
         });
     });

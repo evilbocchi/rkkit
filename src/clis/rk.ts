@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -28,9 +28,9 @@ yargsInstance
                 });
         },
         async (argv) => {
-            const rkCommandHandler = (await import("../commands/rk"))
+            const rkCommandHandler = (await import("../commands/rk.js"))
                 .rkCommandHandler;
-            await rkCommandHandler(argv);
+            await rkCommandHandler(argv as any);
         },
     );
 

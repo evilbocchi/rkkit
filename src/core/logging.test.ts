@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { logger, configureLogger } from "./logging";
-import { Signale } from "signale";
 
 describe("logging", () => {
     beforeEach(() => {
@@ -18,7 +17,7 @@ describe("logging", () => {
 
     it("should set log level correctly", () => {
         const setLogLevelSpy = vi.spyOn(logger, "setLogLevel");
-        
+
         logger.setLogLevel("debug");
         expect(setLogLevelSpy).toHaveBeenCalledWith("debug");
         expect((logger as any)._generalLogLevel).toBe("debug");

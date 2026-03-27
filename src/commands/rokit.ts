@@ -247,7 +247,8 @@ export async function rokitCommandHandler({
             return;
         }
 
-        await Bun.write(zipPath, downloadResponse);
+        const zipBuffer = Buffer.from(await downloadResponse.arrayBuffer());
+        fs.writeFileSync(zipPath, zipBuffer);
 
         logger.info(`extracting rokit...`);
         const zip = new AdmZip(zipPath);

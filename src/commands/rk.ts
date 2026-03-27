@@ -4,8 +4,11 @@ import {
     SpawnSyncOptionsWithBufferEncoding,
 } from "child_process";
 import fs from "fs";
+import { readFile } from "fs/promises";
 import os from "os";
 import path from "path";
+import { parse as parseToml } from "@iarna/toml";
+import * as semver from "semver";
 import { logger } from "../core/logging.js";
 import { rokitCommandHandler } from "./rokit.js";
 
@@ -116,10 +119,10 @@ async function ensureRk({
     }
 
     // 2. Read and parse rokit.toml.
-    let tomlContent = await Bun.file(tomlPath).text();
+    let tomlContent = await readFile(tomlPath, "utf-8");
     let tomlData: any;
     try {
-        tomlData = Bun.TOML.parse(tomlContent);
+        tomlData = parseToml(tomlContent);
     } catch (err) {
         logger.error(`failed to parse ${tomlPath}: ${err}`);
         process.exit(1);
@@ -162,9 +165,9 @@ async function ensureRk({
         }
 
         // Re-read rokit.toml
-        tomlContent = await Bun.file(tomlPath).text();
+        tomlContent = await readFile(tomlPath, "utf-8");
         try {
-            tomlData = Bun.TOML.parse(tomlContent);
+            tomlData = parseToml(tomlContent);
         } catch (err) {
             logger.error(
                 `failed to parse ${tomlPath} after adding tool: ${err}`,
@@ -185,7 +188,7 @@ async function ensureRk({
 
     // `toolEntry` format is usually "owner/repo@version"
     // We need to parse it to get owner, repo, and version.
-    const match = toolEntry.match(/^([^\/]+)\/([^@]+)@(.+)$/);
+    const match = toolEntry.match(/^([^/]+)\/([^@]+)@(.+)$/);
     if (!match) {
         logger.error(
             `invalid tool definition for "${tool}" in ${tomlPath}: ${toolEntry}`,
@@ -230,7 +233,7 @@ async function ensureRk({
         }
         const satisfyingVersions = installedVersions.filter((v) => {
             try {
-                return Bun.semver.satisfies(v, version);
+                return semver.satisfies(v, version);
             } catch {
                 return false;
             }
@@ -239,7 +242,7 @@ async function ensureRk({
         if (satisfyingVersions.length > 0) {
             satisfyingVersions.sort((a, b) => {
                 try {
-                    return Bun.semver.order(a, b) * -1; // Descending
+                    return semver.rcompare(a, b);
                 } catch {
                     return 0;
                 }
