@@ -223,7 +223,7 @@ describe("rk command", () => {
         });
 
         it("should handle Windows executable names", async () => {
-            vi.mocked(os.platform).mockReturnValue("win32");
+            vi.mocked(os.platform).mockReturnValue("win32" as NodeJS.Platform);
             vi.mocked(fs.existsSync).mockReturnValue(true);
             vi.mocked(parseToml).mockReturnValue({
                 tools: { lune: "rojo-rbx/lune@0.21.0" },

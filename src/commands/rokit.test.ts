@@ -45,7 +45,7 @@ describe("rokit command", () => {
         vi.clearAllMocks();
         vi.mocked(os.homedir).mockReturnValue(mockHomedir);
         vi.mocked(os.platform).mockReturnValue("linux" as NodeJS.Platform);
-        vi.mocked(os.arch).mockReturnValue("x64");
+        vi.mocked(os.arch).mockReturnValue("x64" as any);
         vi.mocked(fs.existsSync).mockReturnValue(false);
         vi.mocked(fs.mkdirSync).mockReturnValue("");
         vi.mocked(fs.readdirSync).mockReturnValue([]);
@@ -80,16 +80,28 @@ describe("rokit command", () => {
             assets: [
                 {
                     name: "rokit-linux-x86_64.zip",
-                    browser_download_url: "https://example.com/rokit-linux.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-linux-x64.zip",
+                },
+                {
+                    name: "rokit-linux-aarch64.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-linux-arm64.zip",
                 },
                 {
                     name: "rokit-windows-x86_64.zip",
                     browser_download_url:
-                        "https://example.com/rokit-windows.zip",
+                        "https://example.com/rokit-windows-x64.zip",
+                },
+                {
+                    name: "rokit-windows-aarch64.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-windows-arm64.zip",
                 },
                 {
                     name: "rokit-macos-x86_64.zip",
-                    browser_download_url: "https://example.com/rokit-macos.zip",
+                    browser_download_url:
+                        "https://example.com/rokit-macos-x64.zip",
                 },
                 {
                     name: "rokit-macos-aarch64.zip",
@@ -261,9 +273,61 @@ describe("rokit command", () => {
             );
         });
 
-        it("should handle Windows platform correctly", async () => {
-            vi.mocked(os.platform).mockReturnValue("win32");
-            vi.mocked(os.arch).mockReturnValue("x64");
+        describe("architecture detection", () => {
+            const architectures = [
+                {
+                    platform: "win32",
+                    arch: "x64",
+                    expectedUrl: "https://example.com/rokit-windows-x64.zip",
+                },
+                {
+                    platform: "win32",
+                    arch: "arm64",
+                    expectedUrl: "https://example.com/rokit-windows-arm64.zip",
+                },
+                {
+                    platform: "linux",
+                    arch: "x64",
+                    expectedUrl: "https://example.com/rokit-linux-x64.zip",
+                },
+                {
+                    platform: "linux",
+                    arch: "arm64",
+                    expectedUrl: "https://example.com/rokit-linux-arm64.zip",
+                },
+                {
+                    platform: "darwin",
+                    arch: "x64",
+                    expectedUrl: "https://example.com/rokit-macos-x64.zip",
+                },
+                {
+                    platform: "darwin",
+                    arch: "arm64",
+                    expectedUrl: "https://example.com/rokit-macos-arm64.zip",
+                },
+            ];
+
+            architectures.forEach(({ platform, arch, expectedUrl }) => {
+                it(`should detect ${platform} ${arch} and download ${expectedUrl}`, async () => {
+                    vi.mocked(os.platform).mockReturnValue(
+                        platform as NodeJS.Platform,
+                    );
+                    vi.mocked(os.arch).mockReturnValue(arch as any);
+                    setupFetchMocks();
+
+                    await rokitModule.rokitCommandHandler({
+                        version: "latest",
+                        args: [],
+                    });
+
+                    expect(fetch).toHaveBeenCalledWith(expectedUrl);
+                });
+            });
+        });
+
+        it("should handle Windows platform correctly with exe suffix", async () => {
+            vi.mocked(os.platform).mockReturnValue("win32" as NodeJS.Platform);
+            vi.mocked(os.arch).mockReturnValue("x64" as any);
             setupFetchMocks();
 
             await rokitModule.rokitCommandHandler({
@@ -276,21 +340,6 @@ describe("rokit command", () => {
                 binPath,
                 [],
                 expect.any(Object),
-            );
-        });
-
-        it("should handle macOS ARM64 correctly", async () => {
-            vi.mocked(os.platform).mockReturnValue("darwin");
-            vi.mocked(os.arch).mockReturnValue("arm64");
-            setupFetchMocks();
-
-            await rokitModule.rokitCommandHandler({
-                version: "latest",
-                args: [],
-            });
-
-            expect(fetch).toHaveBeenCalledWith(
-                "https://example.com/rokit-macos-arm64.zip",
             );
         });
 
@@ -339,9 +388,7 @@ describe("rokit command", () => {
         });
 
         it("should throw error for unsupported platform", async () => {
-            vi.mocked(os.platform).mockReturnValue(
-                "freebsd" as NodeJS.Platform,
-            );
+            vi.mocked(os.platform).mockReturnValue("freebsd" as any);
             setupFetchMocks();
 
             await expect(
@@ -373,7 +420,7 @@ describe("rokit command", () => {
 
             expect(logger.error).toHaveBeenCalledWith(
                 expect.stringContaining(
-                    "failed to download rokit from https://example.com/rokit-linux.zip: Forbidden",
+                    "failed to download rokit from https://example.com/rokit-linux-x64.zip: Forbidden",
                 ),
             );
         });
