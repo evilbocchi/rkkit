@@ -192,7 +192,9 @@ describe("rk command", () => {
             vi.mocked(fs.readdirSync).mockReturnValue(["0.21.0"] as any);
             await rkModule.rkCommandHandler({ tool: "rojo-rbx/lune" });
             expect(mockRokitCommandHandler).toHaveBeenCalledWith(
-                expect.objectContaining({ args: ["add", "rojo-rbx/lune"] }),
+                expect.objectContaining({
+                    args: ["add", "--force", "rojo-rbx/lune"],
+                }),
             );
         });
 

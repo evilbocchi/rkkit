@@ -156,8 +156,7 @@ async function ensureRk({
         );
         const tomlDir = path.dirname(tomlPath);
         const addResult = await rokitCommandHandler({
-            version: "latest",
-            args: ["add", tool],
+            args: ["add", "--force", tool],
             options: { stdio: "inherit", cwd: tomlDir },
         });
 
