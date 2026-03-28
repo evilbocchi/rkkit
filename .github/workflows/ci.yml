@@ -43,6 +43,10 @@ jobs:
       - name: Run tests with coverage
         run: npm test -- --coverage
 
+      - name: Clear npx cache
+        run: |
+          node -e "require('fs').rmSync(require('path').join(require('child_process').execSync('npm config get cache').toString().trim(), '_npx'), { recursive: true, force: true })"
+
       - name: Smoke test CLI
         run: |
           npx rokit --help
