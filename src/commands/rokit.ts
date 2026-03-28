@@ -109,24 +109,22 @@ function getAssetUrl(
     } else if (platform === "linux") {
         platformKeyword = "linux";
     } else if (platform === "darwin") {
-        platformKeyword = arch === "arm64" ? "macos-aarch" : "macos";
+        platformKeyword = "macos";
     } else {
         throw new Error(`Unsupported platform: ${platform}`);
     }
 
     const asset = data.assets.find((a) => {
         const name = a.name.toLowerCase();
-        if (platform === "win32") {
-            if (arch === "arm64") {
-                return name.includes("windows") && name.includes("aarch64");
-            } else {
-                return name.includes("windows") && !name.includes("aarch64");
-            }
-        }
-        if (platform === "darwin" && arch !== "arm64") {
-            return name.includes("macos") && !name.includes("aarch");
-        }
-        return name.includes(platformKeyword);
+        const matchesPlatform = name.includes(platformKeyword);
+        if (!matchesPlatform) return false;
+
+        const isArm64 = arch === "arm64";
+        const matchesArch = isArm64
+            ? name.includes("aarch64") || name.includes("arm64")
+            : !name.includes("aarch64") && !name.includes("arm64");
+
+        return matchesArch;
     });
 
     if (!asset) {
