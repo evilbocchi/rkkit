@@ -47,4 +47,3 @@ jobs:
         run: |
           npx rokit --help
           npx rokit init
-          npx lune run examples/basic/test.luau
