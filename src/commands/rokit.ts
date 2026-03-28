@@ -229,8 +229,13 @@ export async function rokitCommandHandler({
             `downloading rokit version ${targetVersion} from ${repo}...`,
         );
 
-        const releaseData = await getRokitReleaseData(repo, targetVersion);
-        if (!releaseData) return;
+        let releaseData: GitHubRelease;
+        try {
+            releaseData = await getRokitReleaseData(repo, targetVersion);
+        } catch (err) {
+            logger.error(err instanceof Error ? err.message : String(err));
+            return;
+        }
 
         const downloadUrl = getAssetUrl(releaseData, platform, arch);
 

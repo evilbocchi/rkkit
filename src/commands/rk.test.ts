@@ -6,7 +6,7 @@ import { readFile } from "fs/promises";
 import { spawn, spawnSync } from "child_process";
 import { parse as parseToml } from "@iarna/toml";
 import * as semver from "semver";
-import { logger } from "../core/logging";
+import { logger } from "../core/logging.js";
 
 vi.mock("fs");
 vi.mock("fs/promises");
@@ -16,14 +16,23 @@ vi.mock("path", async () => {
 });
 vi.mock("os");
 vi.mock("child_process");
-vi.mock("@iarna/toml", () => ({
-    parse: vi.fn().mockReturnValue({}),
-}));
-vi.mock("semver", () => ({
-    satisfies: vi.fn().mockReturnValue(true),
-    rcompare: vi.fn().mockReturnValue(0),
-}));
-vi.mock("../core/logging", () => ({
+vi.mock("@iarna/toml", async () => {
+    const actual =
+        await vi.importActual<typeof import("@iarna/toml")>("@iarna/toml");
+    return {
+        ...actual,
+        parse: vi.fn().mockReturnValue({}),
+    };
+});
+vi.mock("semver", async () => {
+    const actual = await vi.importActual<typeof import("semver")>("semver");
+    return {
+        ...actual,
+        satisfies: vi.fn().mockReturnValue(true),
+        rcompare: vi.fn().mockReturnValue(0),
+    };
+});
+vi.mock("../core/logging.js", () => ({
     logger: {
         info: vi.fn(),
         warn: vi.fn(),
@@ -38,7 +47,7 @@ if (fs.constants === undefined) {
 }
 
 const mockRokitCommandHandler = vi.fn();
-vi.mock("./rokit", () => ({
+vi.mock("./rokit.js", () => ({
     rokitCommandHandler: mockRokitCommandHandler,
 }));
 
@@ -47,7 +56,7 @@ describe("rk command", () => {
     const mockCwd = "/home/user/project";
     const mockTomlPath = path.join(mockCwd, "rokit.toml");
 
-    let rkModule: typeof import("./rk");
+    let rkModule: typeof import("./rk.js");
 
     beforeEach(async () => {
         vi.resetModules();
@@ -55,7 +64,7 @@ describe("rk command", () => {
         vi.mocked(os.homedir).mockReturnValue(mockHomedir);
         vi.mocked(os.platform).mockReturnValue("linux" as NodeJS.Platform);
         vi.spyOn(process, "cwd").mockReturnValue(mockCwd);
-        vi.spyOn(process, "exit").mockImplementation((code) => {
+        vi.spyOn(process, "exit").mockImplementation((code: any) => {
             throw new Error(`process.exit(${code})`);
         });
 
@@ -63,13 +72,13 @@ describe("rk command", () => {
         vi.mocked(fs.readdirSync).mockReturnValue([]);
         vi.mocked(fs.statSync).mockReturnValue({
             isDirectory: () => true,
-        } as fs.Stats);
+        } as unknown as fs.Stats);
         vi.mocked(readFile).mockResolvedValue("");
         vi.mocked(parseToml).mockReturnValue({});
         vi.mocked(semver.satisfies).mockReturnValue(true);
         vi.mocked(semver.rcompare).mockReturnValue(0);
 
-        rkModule = await import("./rk");
+        rkModule = await import("./rk.js");
     });
 
     describe("rkCommandHandler and rkCommandHandlerSync", () => {
@@ -257,16 +266,12 @@ describe("rk command", () => {
                 "0.20.0",
             ] as any);
             vi.mocked(semver.satisfies).mockImplementation(
-                (
-                    v: string | typeof semver.SemVer,
-                    _range: string | typeof semver.Range,
-                ) => String(v) === "0.21.1",
+                (v: string | semver.SemVer, _range: string | semver.Range) =>
+                    String(v) === "0.21.1",
             );
             vi.mocked(semver.rcompare).mockImplementation(
-                (
-                    a: string | typeof semver.SemVer,
-                    _b: string | typeof semver.SemVer,
-                ) => (String(a) === "0.21.1" ? -1 : 1),
+                (a: string | semver.SemVer, _b: string | semver.SemVer) =>
+                    String(a) === "0.21.1" ? -1 : 1,
             );
             await rkModule.rkCommandHandler({ tool: "lune" });
             expect(spawn).toHaveBeenCalledWith(

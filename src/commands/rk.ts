@@ -103,7 +103,7 @@ async function ensureRk({
                 options: { stdio: "inherit", cwd: process.cwd() },
             });
 
-            if (initResult && initResult.status !== 0) {
+            if (!initResult || initResult.status !== 0) {
                 logger.error("failed to automatically initialize rokit.");
                 process.exit(1);
             }
@@ -160,7 +160,7 @@ async function ensureRk({
             options: { stdio: "inherit", cwd: tomlDir },
         });
 
-        if (addResult && addResult.status !== 0) {
+        if (!addResult || addResult.status !== 0) {
             logger.error(`failed to add tool "${tool}" via rokit.`);
             process.exit(1);
         }
@@ -273,7 +273,7 @@ async function ensureRk({
             options: { stdio: "inherit", cwd: tomlDir },
         });
 
-        if (installResult && installResult.status !== 0) {
+        if (!installResult || installResult.status !== 0) {
             logger.error(`failed to install tools via rokit.`);
             process.exit(1);
         }
