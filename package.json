@@ -1,6 +1,6 @@
 {
     "name": "rkkit",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Next-generation toolchain manager for Roblox projects",
     "homepage": "https://github.com/evilbocchi/rkkit#readme",
     "bugs": {
