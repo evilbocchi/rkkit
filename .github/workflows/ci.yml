@@ -40,5 +40,8 @@ jobs:
       - name: Run tests with coverage
         run: npm test -- --coverage
 
-      - name: Test CLI
-        run: npx rokit --help
+      - name: Smoke test CLI
+        run: |
+          npx rokit --help
+          npx rokit init
+          npx lune run examples/basic/test.luau
