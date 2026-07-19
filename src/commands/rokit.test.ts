@@ -424,5 +424,80 @@ describe("rokit command", () => {
                 ),
             );
         });
+
+        it("should return spawnSync result with status so CLI can forward exit codes", async () => {
+            const binPath = path.join(mockRokitDir, "1.0.0", "rokit");
+            vi.mocked(fs.existsSync).mockImplementation((p) => {
+                if (typeof p !== "string") return false;
+                if (p === binPath) return true;
+                if (p === mockRokitDir) return true;
+                return false;
+            });
+
+            vi.mocked(spawnSync).mockReturnValue({
+                status: 0,
+                stdout: "",
+                stderr: "",
+            } as any);
+
+            const result = await rokitModule.rokitCommandHandler({
+                version: "1.0.0",
+                args: ["install"],
+            });
+
+            expect(result).toBeDefined();
+            expect(result).toHaveProperty("status", 0);
+        });
+
+        it("should return non-zero status from spawnSync for CLI exit code forwarding", async () => {
+            const binPath = path.join(mockRokitDir, "1.0.0", "rokit");
+            vi.mocked(fs.existsSync).mockImplementation((p) => {
+                if (typeof p !== "string") return false;
+                if (p === binPath) return true;
+                if (p === mockRokitDir) return true;
+                return false;
+            });
+
+            vi.mocked(spawnSync).mockReturnValue({
+                status: 1,
+                stdout: "",
+                stderr: "error",
+            } as any);
+
+            const result = await rokitModule.rokitCommandHandler({
+                version: "1.0.0",
+                args: ["install"],
+            });
+
+            expect(result).toBeDefined();
+            expect(result?.status).toBe(1);
+        });
+
+        it("should allow process.exit to be called with spawnSync status for exit code forwarding", async () => {
+            const binPath = path.join(mockRokitDir, "1.0.0", "rokit");
+            vi.mocked(fs.existsSync).mockImplementation((p) => {
+                if (typeof p !== "string") return false;
+                if (p === binPath) return true;
+                if (p === mockRokitDir) return true;
+                return false;
+            });
+
+            vi.mocked(spawnSync).mockReturnValue({
+                status: 2,
+                stdout: "",
+                stderr: "",
+            } as any);
+
+            const result = await rokitModule.rokitCommandHandler({
+                version: "1.0.0",
+                args: [],
+            });
+
+            // Simulate what the CLI does: process.exit(spawnSyncReturns?.status)
+            expect(result).toBeDefined();
+            expect(typeof result?.status).toBe("number");
+            // Verify it's safe to pass to process.exit
+            expect(result!.status).toBe(2);
+        });
     });
 });

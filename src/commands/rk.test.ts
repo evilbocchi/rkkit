@@ -407,5 +407,58 @@ describe("rk command", () => {
                 expect.stringContaining("could not find an executable"),
             );
         });
+
+        it("should return a ChildProcess from rkCommandHandler so CLI can forward exit codes", async () => {
+            vi.mocked(fs.existsSync).mockReturnValue(true);
+            vi.mocked(parseToml).mockReturnValue({
+                tools: { lune: "rojo-rbx/lune@0.21.0" },
+            });
+            vi.mocked(fs.readdirSync).mockReturnValue(["0.21.0"] as any);
+            vi.mocked(fs.statSync).mockReturnValue({
+                isDirectory: () => true,
+            } as fs.Stats);
+            vi.mocked(fs.accessSync).mockReturnValue(undefined);
+
+            const mockOn = vi.fn();
+            vi.mocked(spawn).mockReturnValue({
+                on: mockOn,
+            } as any);
+
+            const result = await rkModule.rkCommandHandler({
+                tool: "lune",
+                args: ["--version"],
+            });
+
+            expect(result).toBeDefined();
+            expect(result).toHaveProperty("on");
+            expect(typeof result.on).toBe("function");
+        });
+
+        it("should return the ChildProcess from spawn so CLI can attach exit handler", async () => {
+            vi.mocked(fs.existsSync).mockReturnValue(true);
+            vi.mocked(parseToml).mockReturnValue({
+                tools: { lune: "rojo-rbx/lune@0.21.0" },
+            });
+            vi.mocked(fs.readdirSync).mockReturnValue(["0.21.0"] as any);
+            vi.mocked(fs.statSync).mockReturnValue({
+                isDirectory: () => true,
+            } as fs.Stats);
+            vi.mocked(fs.accessSync).mockReturnValue(undefined);
+
+            const mockOn = vi.fn();
+            const mockChildProcess = { on: mockOn } as any;
+            vi.mocked(spawn).mockReturnValue(mockChildProcess);
+
+            const result = await rkModule.rkCommandHandler({
+                tool: "lune",
+                args: [],
+            });
+
+            // The return value should be the exact ChildProcess from spawn
+            expect(result).toBe(mockChildProcess);
+            // Verify the CLI can attach an exit handler on the returned value
+            result.on("exit", process.exit);
+            expect(mockOn).toHaveBeenCalledWith("exit", process.exit);
+        });
     });
 });
