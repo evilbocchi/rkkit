@@ -6,9 +6,10 @@ const yargsInstance = createYargsWrapper({
     handler: async (argv: { args?: string[] }) => {
         const rokitCommandHandler = (await import("../commands/rokit.js"))
             .rokitCommandHandler;
-        await rokitCommandHandler({
+        const spawnSyncReturns = await rokitCommandHandler({
             args: argv.args as string[],
         });
+        process.exit(spawnSyncReturns?.status);
     },
 });
 

@@ -31,7 +31,10 @@ yargsInstance
         async (argv) => {
             const rkCommandHandler = (await import("../commands/rk.js"))
                 .rkCommandHandler;
-            await rkCommandHandler(argv as unknown as RkCommandOptions);
+            const childProcesss = await rkCommandHandler(
+                argv as unknown as RkCommandOptions,
+            );
+            childProcesss.on("exit", process.exit);
         },
     );
 
