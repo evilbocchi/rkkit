@@ -206,6 +206,9 @@ async function ensureRk({
     }
 
     const [, owner, repo, version] = match;
+    const storageOwner = owner.toLowerCase();
+    const storageRepo = repo.toLowerCase();
+    const storageTool = tool.toLowerCase();
 
     // 3. Construct the path to the tool binary.
     const platform = os.platform();
@@ -217,8 +220,8 @@ async function ensureRk({
         homeDir,
         ".rokit",
         "tool-storage",
-        owner,
-        repo,
+        storageOwner,
+        storageRepo,
     );
 
     let installedVersions: string[] = [];
@@ -317,12 +320,12 @@ async function ensureRk({
     // Find the executable.
     // It's usually `<tool>.exe` on Windows or `<tool>` on Unix.
     // If not found, we can list the directory to find the first executable.
-    const defaultExeName = isWindows ? `${tool}.exe` : tool;
+    const defaultExeName = isWindows ? `${storageTool}.exe` : storageTool;
     let binPath = path.join(toolStorageDir, defaultExeName);
 
     if (!fs.existsSync(binPath)) {
         // Try `<repo>.exe` or `<repo>`
-        const repoExeName = isWindows ? `${repo}.exe` : repo;
+        const repoExeName = isWindows ? `${storageRepo}.exe` : storageRepo;
         binPath = path.join(toolStorageDir, repoExeName);
 
         if (!fs.existsSync(binPath)) {

@@ -166,6 +166,47 @@ describe("rk command", () => {
             );
         });
 
+        it("should use lowercase Rokit storage paths for mixed-case tool ids", async () => {
+            vi.mocked(fs.existsSync).mockImplementation((p) => {
+                if (typeof p !== "string") return false;
+                return (
+                    p === mockTomlPath ||
+                    p.includes(
+                        path.join(
+                            ".rokit",
+                            "tool-storage",
+                            "johnnymorganz",
+                            "stylua",
+                        ),
+                    )
+                );
+            });
+            vi.mocked(readFile).mockResolvedValue(
+                'tools = { StyLua = "JohnnyMorganz/StyLua@2.5.2" }',
+            );
+            vi.mocked(parseToml).mockReturnValue({
+                tools: { StyLua: "JohnnyMorganz/StyLua@2.5.2" },
+            });
+            vi.mocked(fs.readdirSync).mockReturnValue(["2.5.2"] as any);
+
+            await rkModule.rkCommandHandler({ tool: "StyLua" });
+
+            const expectedBinPath = path.join(
+                mockHomedir,
+                ".rokit",
+                "tool-storage",
+                "johnnymorganz",
+                "stylua",
+                "2.5.2",
+                "stylua",
+            );
+            expect(spawn).toHaveBeenCalledWith(
+                expectedBinPath,
+                [],
+                expect.any(Object),
+            );
+        });
+
         it("should handle tools specified as owner/repo", async () => {
             vi.mocked(fs.existsSync).mockReturnValue(true);
             vi.mocked(parseToml).mockReturnValue({
