@@ -51,3 +51,4 @@ jobs:
         run: |
           npx rokit --help
           npx rokit init
+          npx rk StyLua src
