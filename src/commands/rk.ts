@@ -1,3 +1,4 @@
+import { parse as parseToml } from "@iarna/toml";
 import {
     spawn,
     spawnSync,
@@ -5,9 +6,9 @@ import {
 } from "child_process";
 import fs from "fs";
 import { readFile } from "fs/promises";
+import isCI from "is-ci";
 import os from "os";
 import path from "path";
-import { parse as parseToml } from "@iarna/toml";
 import * as semver from "semver";
 import { logger } from "../core/logging.js";
 import { rokitCommandHandler } from "./rokit.js";
@@ -267,9 +268,10 @@ async function ensureRk({
             `installed version for "${tool}" satisfying "${version}" not found. running rokit install...`,
         );
         const tomlDir = path.dirname(tomlPath);
+        const args = isCI ? ["install", "--no-trust-check"] : ["install"];
         const installResult = await rokitCommandHandler({
             version: rokitVersion,
-            args: ["install"],
+            args,
             options: { stdio: "inherit", cwd: tomlDir },
         });
 
