@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import path from "path";
-import os from "os";
+import { parse as parseToml } from "@iarna/toml";
+import { spawn, spawnSync } from "child_process";
 import fs from "fs";
 import { readFile } from "fs/promises";
-import { spawn, spawnSync } from "child_process";
-import { parse as parseToml } from "@iarna/toml";
+import isCI from "is-ci";
+import os from "os";
+import path from "path";
 import * as semver from "semver";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { logger } from "../core/logging.js";
 
 vi.mock("fs");
@@ -218,7 +219,11 @@ describe("rk command", () => {
             mockRokitCommandHandler.mockResolvedValue({ status: 0 });
             await rkModule.rkCommandHandler({ tool: "lune" });
             expect(mockRokitCommandHandler).toHaveBeenCalledWith(
-                expect.objectContaining({ args: ["install"] }),
+                expect.objectContaining(
+                    isCI
+                        ? { args: ["install", "--no-trust-check"] }
+                        : { args: ["install"] },
+                ),
             );
         });
 
