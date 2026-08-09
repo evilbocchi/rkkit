@@ -1,0 +1,11 @@
+{
+    "name": "rkkit-rojo-example",
+    "tree": {
+        "$className": "DataModel",
+        "ServerScriptService": {
+            "Server.server.luau": {
+                "$path": "src/server.server.luau"
+            }
+        }
+    }
+}

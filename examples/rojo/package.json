@@ -1,0 +1,14 @@
+{
+    "name": "rojo-example",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "test": "vitest run rojo.integration.test.ts"
+    },
+    "devDependencies": {
+        "rkkit": "^0.2.0"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    }
+}
