@@ -27,7 +27,7 @@ export type RkCommandOptions = {
      */
     args?: string[];
     /**
-     * If true, the command handler will automatically initialize a `rokit.toml` in the current directory if one cannot be found in the current or parent directories. This is useful for commands that require Rokit but may be run in a directory that hasn't been set up with Rokit yet. If this option is not set and no `rokit.toml` is found, the command will log an error and exit.
+     * If true, the command handler will automatically initialize a `rokit.toml` in the current directory if one cannot be found in the current or parent directories. This is useful for commands that require Rokit but may be run in a directory that hasn't been set up with Rokit yet. If this option is not set and no `rokit.toml` is found, the command will warn and use the globally installed tool.
      */
     autoInit?: boolean;
     /**
@@ -88,12 +88,51 @@ async function ensureRk({
         currentDir = parentDir;
     }
 
+    const platform = os.platform();
+    const isWindows = platform === "win32";
+
     if (!tomlPath) {
         if (!autoInit) {
-            logger.error(
-                "could not find rokit.toml in the current or parent directories. please create it if you are sure you are in the right directory!",
+            logger.warn(
+                "could not find rokit.toml in the current or parent directories, using the globally installed tool instead.",
             );
-            process.exit(1);
+
+            const globalBinPath = findGlobalToolPath(tool, isWindows);
+
+            let resolvedGlobalBinPath = globalBinPath;
+
+            if (!resolvedGlobalBinPath) {
+                logger.info(`installing "${tool}" globally via rokit...`);
+                const addResult = await rokitCommandHandler({
+                    version: rokitVersion,
+                    args: ["add", "--global", "--force", tool],
+                    options: { stdio: "inherit", cwd: process.cwd() },
+                });
+
+                if (!addResult || addResult.status !== 0) {
+                    logger.error(`failed to install "${tool}" via rokit.`);
+                    process.exit(1);
+                }
+
+                resolvedGlobalBinPath = findGlobalToolPath(tool, isWindows);
+            }
+
+            if (!resolvedGlobalBinPath) {
+                logger.error(
+                    `could not find a globally installed executable for "${tool}" after installation.`,
+                );
+                process.exit(1);
+            }
+
+            const spawnOptions: SpawnSyncOptionsWithBufferEncoding = {
+                ...options,
+                env: {
+                    ...process.env,
+                    ...options.env,
+                },
+            };
+
+            return { binPath: resolvedGlobalBinPath, spawnOptions };
         } else {
             logger.info(
                 "could not find rokit.toml, automatically initializing one in the current directory...",
@@ -211,9 +250,6 @@ async function ensureRk({
     const storageTool = tool.toLowerCase();
 
     // 3. Construct the path to the tool binary.
-    const platform = os.platform();
-    const isWindows = platform === "win32";
-
     // ~/.rokit/tool-storage/<owner>/<repo>/
     const homeDir = os.homedir();
     const repoStorageDir = path.join(
@@ -376,4 +412,76 @@ async function ensureRk({
         binPath,
         spawnOptions,
     };
+}
+
+function findGlobalToolPath(tool: string, isWindows: boolean) {
+    const globalToolName = tool.split("@")[0].split("/").pop() || tool;
+    const normalizedToolName = globalToolName.toLowerCase();
+    const rokitHome = path.join(os.homedir(), ".rokit");
+    const executableName = isWindows
+        ? `${normalizedToolName}.exe`
+        : normalizedToolName;
+    const toolStorageRoot = path.join(rokitHome, "tool-storage");
+
+    if (fs.existsSync(toolStorageRoot)) {
+        const owners = fs.readdirSync(toolStorageRoot).filter((owner) => {
+            try {
+                return fs
+                    .statSync(path.join(toolStorageRoot, owner))
+                    .isDirectory();
+            } catch {
+                return false;
+            }
+        });
+
+        for (const owner of owners) {
+            const repoStorageDir = path.join(
+                toolStorageRoot,
+                owner,
+                normalizedToolName,
+            );
+            const versions = getGlobalToolVersions(repoStorageDir);
+
+            for (const version of versions) {
+                const binPath = path.join(
+                    repoStorageDir,
+                    version,
+                    executableName,
+                );
+                if (fs.existsSync(binPath)) return binPath;
+            }
+        }
+    }
+
+    const globalBinPath = path.join(rokitHome, "bin", executableName);
+    return fs.existsSync(globalBinPath) ? globalBinPath : undefined;
+}
+
+function getGlobalToolVersions(repoStorageDir: string) {
+    if (!fs.existsSync(repoStorageDir)) return [];
+
+    return fs
+        .readdirSync(repoStorageDir)
+        .filter((version) => {
+            try {
+                return fs
+                    .statSync(path.join(repoStorageDir, version))
+                    .isDirectory();
+            } catch {
+                return false;
+            }
+        })
+        .sort((a, b) => {
+            const aParts = a.split(".").map((part) => parseInt(part) || 0);
+            const bParts = b.split(".").map((part) => parseInt(part) || 0);
+            for (
+                let index = 0;
+                index < Math.max(aParts.length, bParts.length);
+                index++
+            ) {
+                if ((aParts[index] || 0) > (bParts[index] || 0)) return -1;
+                if ((aParts[index] || 0) < (bParts[index] || 0)) return 1;
+            }
+            return 0;
+        });
 }

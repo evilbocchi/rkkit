@@ -83,12 +83,120 @@ describe("rk command", () => {
     });
 
     describe("rkCommandHandler and rkCommandHandlerSync", () => {
-        it("should log an error and exit if rokit.toml is not found and autoInit is false", async () => {
+        it("should warn and use the global tool if rokit.toml is not found", async () => {
+            const globalBinPath = path.join(
+                mockHomedir,
+                ".rokit",
+                "bin",
+                "lune",
+            );
+            vi.mocked(fs.existsSync).mockImplementation(
+                (p) => p === globalBinPath,
+            );
+
+            await rkModule.rkCommandHandler({
+                tool: "lune",
+                args: ["--version"],
+                autoInit: false,
+            });
+
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.stringContaining("could not find rokit.toml"),
+            );
+            expect(spawn).toHaveBeenCalledWith(
+                globalBinPath,
+                ["--version"],
+                expect.any(Object),
+            );
+        });
+
+        it("should prefer the highest version from global tool storage", async () => {
+            const toolStorageRoot = path.join(
+                mockHomedir,
+                ".rokit",
+                "tool-storage",
+            );
+            const repoStorageDir = path.join(
+                toolStorageRoot,
+                "rojo-rbx",
+                "rojo",
+            );
+            const globalBinPath = path.join(repoStorageDir, "7.7.0", "rojo");
+
+            vi.mocked(fs.existsSync).mockImplementation((p) => {
+                const pathString = p.toString();
+                return [
+                    toolStorageRoot,
+                    repoStorageDir,
+                    globalBinPath,
+                ].includes(pathString);
+            });
+            vi.mocked(fs.readdirSync).mockImplementation((p) => {
+                if (p.toString() === toolStorageRoot)
+                    return ["rojo-rbx"] as any;
+                if (p.toString() === repoStorageDir) {
+                    return ["7.6.0", "7.7.0"] as any;
+                }
+                return [];
+            });
+
+            await rkModule.rkCommandHandler({
+                tool: "rojo",
+                args: ["--version"],
+                autoInit: false,
+            });
+
+            expect(spawn).toHaveBeenCalledWith(
+                globalBinPath,
+                ["--version"],
+                expect.any(Object),
+            );
+        });
+
+        it("should download the tool globally if neither rokit.toml nor the tool is found", async () => {
+            const globalBinPath = path.join(
+                mockHomedir,
+                ".rokit",
+                "bin",
+                "lune",
+            );
+            let isInstalled = false;
+            vi.mocked(fs.existsSync).mockImplementation(
+                (p) => p === globalBinPath && isInstalled,
+            );
+            mockRokitCommandHandler.mockImplementation(async () => {
+                isInstalled = true;
+                return { status: 0 };
+            });
+
+            await rkModule.rkCommandHandler({
+                tool: "lune",
+                args: ["--version"],
+                autoInit: false,
+            });
+
+            expect(mockRokitCommandHandler).toHaveBeenCalledWith({
+                args: ["add", "--global", "--force", "lune"],
+                options: { stdio: "inherit", cwd: mockCwd },
+            });
+            expect(spawn).toHaveBeenCalledWith(
+                globalBinPath,
+                ["--version"],
+                expect.any(Object),
+            );
+        });
+
+        it("should exit if global tool installation fails", async () => {
+            mockRokitCommandHandler.mockResolvedValue({ status: 1 });
+
             await expect(
                 rkModule.rkCommandHandler({ tool: "lune", autoInit: false }),
             ).rejects.toThrow("process.exit(1)");
-            expect(logger.error).toHaveBeenCalledWith(
+            expect(logger.warn).toHaveBeenCalledWith(
                 expect.stringContaining("could not find rokit.toml"),
+            );
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.stringContaining('failed to install "lune" via rokit.'),
             );
         });
 
