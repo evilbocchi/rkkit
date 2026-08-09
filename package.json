@@ -1,63 +1,28 @@
 {
-    "name": "rkkit",
-    "version": "0.2.0",
-    "description": "Next-generation toolchain manager for Roblox projects",
-    "homepage": "https://github.com/evilbocchi/rkkit#readme",
-    "bugs": {
-        "url": "https://github.com/evilbocchi/rkkit/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/evilbocchi/rkkit.git"
-    },
-    "license": "MIT",
-    "author": "evilbocchi",
-    "type": "module",
-    "engines": {
-        "node": ">=20.19.0"
-    },
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "bin": {
-        "lune": "dist/clis/lune.js",
-        "rk": "dist/clis/rk.js",
-        "rkkit": "dist/clis/rk.js",
-        "rojo": "dist/clis/rojo.js",
-        "rokit": "dist/clis/rokit.js"
-    },
-    "files": [
-        "dist"
-    ],
+    "name": "@unrealworks/rkkit-monorepo",
+    "private": true,
+    "version": "0.0.0",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b packages/*",
         "prepare": "lefthook install",
         "prepublishOnly": "npm run build",
         "format": "prettier --write .",
         "lint": "eslint . --fix",
         "test": "vitest run"
     },
+    "workspaces": [
+        "examples/*",
+        "packages/*"
+    ],
     "devDependencies": {
         "@eslint/js": "^10.0.1",
-        "@types/adm-zip": "^0.5.8",
-        "@types/semver": "^7.8.0",
-        "@types/yargs": "^17.0.35",
         "@vitest/coverage-v8": "^4.1.10",
         "eslint": "^10.8.1",
         "eslint-config-prettier": "^10.1.8",
+        "jiti": "^2.7.0",
         "lefthook": "^2.1.10",
         "prettier": "^3.9.6",
-        "typescript": "^6",
         "typescript-eslint": "^8.66.0",
         "vitest": "^4.1.10"
-    },
-    "dependencies": {
-        "@iarna/toml": "^2.2.5",
-        "@types/signale": "^1.4.7",
-        "adm-zip": "^0.6.0",
-        "dotenv": "^17.4.2",
-        "is-ci": "^4.1.0",
-        "semver": "^7.8.5",
-        "signale": "^1.4.0",
-        "yargs": "^18.1.0"
     }
 }

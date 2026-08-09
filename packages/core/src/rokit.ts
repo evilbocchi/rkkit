@@ -7,7 +7,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
-import { logger } from "../core/logging.js";
+import { logger } from "./logging.js";
 
 let cachedGitHubToken: string | undefined;
 let hasCheckedGitHubToken = false;

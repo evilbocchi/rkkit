@@ -10,7 +10,7 @@ import isCI from "is-ci";
 import os from "os";
 import path from "path";
 import * as semver from "semver";
-import { logger } from "../core/logging.js";
+import { logger } from "./logging.js";
 import { rokitCommandHandler } from "./rokit.js";
 
 export type RkCommandOptions = {

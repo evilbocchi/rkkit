@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import type { RkCommandOptions } from "../commands/rk.js";
+import type { RkCommandOptions } from "@unrealworks/rkkit-core";
 
 const yargsInstance = yargs(hideBin(process.argv));
 
@@ -29,7 +29,7 @@ yargsInstance
                 });
         },
         async (argv) => {
-            const rkCommandHandler = (await import("../commands/rk.js"))
+            const rkCommandHandler = (await import("@unrealworks/rkkit-core"))
                 .rkCommandHandler;
             const childProcesss = await rkCommandHandler(
                 argv as unknown as RkCommandOptions,

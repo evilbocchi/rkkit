@@ -7,7 +7,7 @@ import os from "os";
 import path from "path";
 import * as semver from "semver";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { logger } from "../core/logging.js";
+import { logger } from "./logging.js";
 
 vi.mock("fs");
 vi.mock("fs/promises");
@@ -33,7 +33,7 @@ vi.mock("semver", async () => {
         rcompare: vi.fn().mockReturnValue(0),
     };
 });
-vi.mock("../core/logging.js", () => ({
+vi.mock("./logging.js", () => ({
     logger: {
         info: vi.fn(),
         warn: vi.fn(),

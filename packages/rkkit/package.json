@@ -1,0 +1,42 @@
+{
+    "name": "rkkit",
+    "version": "0.2.0",
+    "description": "Next-generation toolchain manager for Roblox projects",
+    "homepage": "https://github.com/evilbocchi/rkkit#readme",
+    "bugs": {
+        "url": "https://github.com/evilbocchi/rkkit/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/evilbocchi/rkkit.git"
+    },
+    "license": "MIT",
+    "author": "evilbocchi",
+    "type": "module",
+    "engines": {
+        "node": ">=20.19.0"
+    },
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "lune": "dist/clis/lune.js",
+        "rk": "dist/clis/rk.js",
+        "rkkit": "dist/clis/rk.js",
+        "rojo": "dist/clis/rojo.js",
+        "rokit": "dist/clis/rokit.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc"
+    },
+    "devDependencies": {
+        "@types/yargs": "^17.0.35",
+        "typescript": "^7"
+    },
+    "dependencies": {
+        "@unrealworks/rkkit-core": "^0.2.0",
+        "yargs": "^18.1.0"
+    }
+}

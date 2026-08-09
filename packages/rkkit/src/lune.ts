@@ -2,12 +2,12 @@
 import createYargsWrapper from "./template.js";
 
 const yargsInstance = createYargsWrapper({
-    name: "rojo",
+    name: "lune",
     handler: async (argv: { args?: string[] }) => {
-        const rkCommandHandler = (await import("../commands/rk.js"))
+        const rkCommandHandler = (await import("@unrealworks/rkkit-core"))
             .rkCommandHandler;
         const childProcess = await rkCommandHandler({
-            tool: "rojo",
+            tool: "lune",
             args: argv.args as string[],
         });
         childProcess.on("exit", process.exit);

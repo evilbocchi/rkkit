@@ -7,10 +7,15 @@ export default tseslint.config(
     ...tseslint.configs.recommended,
     prettier,
     {
-        ignores: ["dist/**", "node_modules/**", "coverage/**", "examples/**"],
+        ignores: [
+            "**/dist/**",
+            "**/node_modules/**",
+            "**/coverage/**",
+            "examples/**",
+        ],
     },
     {
-        files: ["src/**/*.ts"],
+        files: ["**/*.ts"],
         rules: {
             "@typescript-eslint/no-explicit-any": "warn",
             "@typescript-eslint/no-unused-vars": [
@@ -21,7 +26,7 @@ export default tseslint.config(
         },
     },
     {
-        files: ["src/**/*.test.ts"],
+        files: ["**/*.test.ts"],
         rules: {
             "@typescript-eslint/no-explicit-any": "off",
         },

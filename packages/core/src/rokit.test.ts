@@ -4,7 +4,7 @@ import os from "os";
 import fs from "fs";
 import { spawnSync, execSync } from "child_process";
 import AdmZip from "adm-zip";
-import { logger } from "../core/logging";
+import { logger } from "./logging";
 
 vi.mock("fs");
 vi.mock("path", async () => {
@@ -22,7 +22,7 @@ vi.mock("adm-zip", () => {
         }),
     };
 });
-vi.mock("../core/logging", () => ({
+vi.mock("./logging", () => ({
     logger: {
         info: vi.fn(),
         warn: vi.fn(),
