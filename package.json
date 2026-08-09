@@ -1,6 +1,6 @@
 {
     "name": "@unrealworks/rkkit-monorepo",
-    "packageManager": "pnpm@11.20.0",
+    "packageManager": "pnpm@10.33.4",
     "private": true,
     "version": "0.0.0",
     "scripts": {
