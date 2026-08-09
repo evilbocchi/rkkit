@@ -6,7 +6,7 @@
         "sourcemap": "rojo sourcemap default.project.json"
     },
     "devDependencies": {
-        "rkkit": "^0.2.0"
+        "rkkit": "workspace:*"
     },
     "peerDependencies": {
         "typescript": "^5"

@@ -5,7 +5,7 @@
     "private": true,
     "devDependencies": {
         "@types/bun": "latest",
-        "rkkit": "^0.2.0"
+        "rkkit": "workspace:*"
     },
     "peerDependencies": {
         "typescript": "^5"

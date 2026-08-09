@@ -36,7 +36,7 @@
         "typescript": "^7"
     },
     "dependencies": {
-        "@unrealworks/rkkit-core": "^0.2.0",
+        "@unrealworks/rkkit-core": "workspace:*",
         "yargs": "^18.1.0"
     }
 }
