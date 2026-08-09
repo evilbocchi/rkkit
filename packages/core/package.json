@@ -6,6 +6,9 @@
     "bugs": {
         "url": "https://github.com/evilbocchi/rkkit/issues"
     },
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/evilbocchi/rkkit.git"
