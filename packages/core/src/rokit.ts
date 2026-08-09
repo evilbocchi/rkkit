@@ -1,8 +1,4 @@
-import {
-    spawnSync,
-    execSync,
-    SpawnSyncOptionsWithBufferEncoding,
-} from "child_process";
+import { spawnSync, execSync, SpawnSyncOptions } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -164,7 +160,7 @@ export async function rokitCommandHandler({
     /**
      * Options to pass to spawnSync when running the Rokit CLI. Defaults to { stdio: "inherit" }.
      */
-    options?: SpawnSyncOptionsWithBufferEncoding;
+    options?: SpawnSyncOptions;
 }) {
     const cacheDir = ensureCacheFolder();
     const rokitDir = path.join(cacheDir, "rokit", repo.replace("/", "-"));

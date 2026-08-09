@@ -4,7 +4,7 @@
     "private": true,
     "version": "0.0.0",
     "scripts": {
-        "build": "tsc -b packages/*",
+        "build": "pnpm -r build",
         "prepare": "lefthook install",
         "prepublishOnly": "npm run build",
         "format": "prettier --write .",

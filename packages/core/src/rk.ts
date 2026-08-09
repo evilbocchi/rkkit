@@ -1,9 +1,5 @@
 import { parse as parseToml } from "@iarna/toml";
-import {
-    spawn,
-    spawnSync,
-    SpawnSyncOptionsWithBufferEncoding,
-} from "child_process";
+import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import fs from "fs";
 import { readFile } from "fs/promises";
 import isCI from "is-ci";
@@ -33,7 +29,7 @@ export type RkCommandOptions = {
     /**
      * Additional options to pass to the `spawn` or `spawnSync` function when running the tool executable. This can include options like `stdio`, `env`, `cwd`, etc. For example, you might want to set `stdio: "inherit"` to have the tool's output be printed directly to the console, or you might want to set environment variables in `env`. These options will be merged with some default options that ensure the tool runs correctly, and then passed to the spawn function when executing the tool.
      */
-    options?: SpawnSyncOptionsWithBufferEncoding;
+    options?: SpawnSyncOptions;
 };
 
 /**
@@ -124,7 +120,7 @@ async function ensureRk({
                 process.exit(1);
             }
 
-            const spawnOptions: SpawnSyncOptionsWithBufferEncoding = {
+            const spawnOptions: SpawnSyncOptions = {
                 ...options,
                 env: {
                     ...process.env,
@@ -400,7 +396,7 @@ async function ensureRk({
     }
 
     // 4. Run the executable.
-    const spawnOptions: SpawnSyncOptionsWithBufferEncoding = {
+    const spawnOptions: SpawnSyncOptions = {
         ...options,
         env: {
             ...process.env,
