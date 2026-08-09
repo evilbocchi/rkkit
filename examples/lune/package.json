@@ -1,9 +1,9 @@
 {
-    "name": "rojo-example",
+    "name": "lune-example",
     "type": "module",
     "private": true,
     "scripts": {
-        "sourcemap": "rojo sourcemap default.project.json"
+        "lune": "lune run lune.luau"
     },
     "devDependencies": {
         "rkkit": "^0.2.0"
