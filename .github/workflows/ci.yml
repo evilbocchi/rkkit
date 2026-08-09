@@ -20,38 +20,32 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Use pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: "pnpm"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Check formatting
-        run: npx prettier --check .
-
-      - name: Run linter
-        run: npx eslint .
-
-      - name: Build project
-        run: npm run build
-
-      - name: Run tests with coverage
-        run: npm test -- --coverage
-
-      - name: Clear npx cache
-        run: |
-          node -e "require('fs').rmSync(require('path').join(require('child_process').execSync('npm config get cache').toString().trim(), '_npx'), { recursive: true, force: true })"
+      - run: pnpm install --frozen-lockfile
+      - run: npx prettier --check .
+      - run: npx eslint .
+      - run: npm run build
+      - run: npm run test -- --coverage
 
       - name: Authenticate Rokit
         shell: bash
+        working-directory: ./packages/rkkit
         run: npx rokit authenticate github --token "$GITHUB_TOKEN" --skip-verify
 
       - name: Smoke test CLI
+        working-directory: ./packages/rkkit
         run: |
           npx rokit --help
           npx rokit init
