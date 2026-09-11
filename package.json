@@ -18,7 +18,7 @@
         "eslint": "^10.8.1",
         "eslint-config-prettier": "^10.1.8",
         "jiti": "^2.7.0",
-        "lefthook": "^2.1.10",
+        "lefthook": "^2.1.12",
         "prettier": "^3.9.6",
         "typescript": "^6",
         "typescript-eslint": "^8.66.0",
