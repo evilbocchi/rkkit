@@ -15,7 +15,7 @@
         "@changesets/cli": "^2.31.1",
         "@eslint/js": "^10.0.1",
         "@vitest/coverage-v8": "^4.1.10",
-        "eslint": "^10.8.1",
+        "eslint": "^10.10.0",
         "eslint-config-prettier": "^10.1.8",
         "jiti": "^2.7.0",
         "lefthook": "^2.1.12",
